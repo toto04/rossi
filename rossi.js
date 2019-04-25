@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
   document.body.appendChild(renderer.domElement);
   renderer.autoClear = false;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFHardShadowMap;
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -45,6 +45,10 @@ window.addEventListener('load', () => {
   dirLight = new THREE.DirectionalLight(0xffffff, 1);
   dirLight.position.set(-100, 100, 100)
   dirLight.castShadow = true;
+
+  dirLight.shadow.mapSize.width = Math.pow(2, 11)
+  dirLight.shadow.mapSize.height = Math.pow(2, 11)
+  dirLight.shadow.bias = 0.000001
 
   scene.add(dirLight)
 
@@ -88,11 +92,7 @@ var animate = function() {
 
 function prism(n, h) {
   var pGeom = new THREE.Geometry();
-  var pMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    vertexColors: THREE.FaceColors
-  });
-  pMat = new THREE.MeshPhongMaterial({
+  pMat = new THREE.MeshToonMaterial({
     color: 0xffffff,
     vertexColors: THREE.FaceColors
   });
@@ -147,71 +147,40 @@ function prism(n, h) {
 }
 
 function addPlanes() {
-  mat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    shininess: 150,
-    specular: 0x222222,
+  planes = []
+  geom = new THREE.PlaneBufferGeometry(100, 100);
+
+  mat = new THREE.MeshToonMaterial({
+    color: 0xf070a2,
     side: THREE.DoubleSide
   })
+  plane = new THREE.Mesh(geom, mat)
+  plane.position.x = -50;
+  plane.position.y = 50;
+  planes.push(plane)
 
-  planes = []
+  mat = new THREE.MeshToonMaterial({
+    color: 0xa2f070,
+    side: THREE.DoubleSide
+  })
+  plane = new THREE.Mesh(geom, mat)
+  plane.rotation.x = Math.PI / 2
+  plane.position.x = -50;
+  plane.position.z = 50;
+  planes.push(plane)
 
-  geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(0, 0, 0))
-  geom.vertices.push(new THREE.Vector3(0, 0, 100))
-  geom.vertices.push(new THREE.Vector3(-100, 0, 0))
-  geom.vertices.push(new THREE.Vector3(-100, 0, 100))
+  mat = new THREE.MeshToonMaterial({
+    color: 0x70a2f0,
+    side: THREE.DoubleSide
+  })
+  plane = new THREE.Mesh(geom, mat)
+  plane.rotation.y = Math.PI / 2
+  plane.position.y = 50;
+  plane.position.z = 50;
+  planes.push(plane)
 
-  geom.faces.push(new THREE.Face3(0, 2, 1))
-  geom.faces.push(new THREE.Face3(0, 2, 3))
-  geom.computeFaceNormals();
-  geom.computeVertexNormals();
-
-  planes.push(new THREE.Mesh(geom, mat))
-
-  geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(0, 0, 0))
-  geom.vertices.push(new THREE.Vector3(0, 100, 0))
-  geom.vertices.push(new THREE.Vector3(-100, 0, 0))
-  geom.vertices.push(new THREE.Vector3(-100, 100, 0))
-
-  geom.faces.push(new THREE.Face3(0, 1, 2))
-  geom.faces.push(new THREE.Face3(0, 2, 3))
-  geom.computeFaceNormals();
-  geom.computeVertexNormals();
-
-  planes.push(new THREE.Mesh(geom, mat))
-
-  geom = new THREE.Geometry();
-  geom.vertices.push(new THREE.Vector3(0, 0, 0))
-  geom.vertices.push(new THREE.Vector3(0, 0, 100))
-  geom.vertices.push(new THREE.Vector3(0, 100, 0))
-  geom.vertices.push(new THREE.Vector3(0, 100, 100))
-
-  geom.faces.push(new THREE.Face3(0, 1, 2))
-  geom.faces.push(new THREE.Face3(0, 3, 2))
-  geom.computeFaceNormals();
-  geom.computeVertexNormals();
-
-  planes.push(new THREE.Mesh(geom, mat))
-
-  geom = new THREE.Geometry()
-  geom.vertices = [
-    new THREE.Vector3(-100, 0, 0),
-    new THREE.Vector3(-0, 0, 0),
-    new THREE.Vector3(-0, 100, 0),
-    new THREE.Vector3(-0, 0, 0),
-    new THREE.Vector3(-0, 0, 100)
-  ]
-
-  axis = new THREE.Line(geom, new THREE.LineBasicMaterial({
-    color: 0x000000,
-    linewidth: 1
-  }))
-
-  for (var i = 0; i < planes.length; i++) {
-    planes[i].receiveShadows = true;
-    scene.add(planes[i])
-  }
-  scene.add(axis)
+  planes.forEach(plane => {
+    plane.receiveShadow = true
+    scene.add(plane)
+  })
 }
