@@ -33,8 +33,6 @@ window.addEventListener('load', () => {
     color: 0xff0000
   });
 
-  var geometry = new THREE.BoxGeometry(1, 1, 1);
-  // prism = new THREE.Mesh( geometry, material );
   prism.position.x = -1
   prism.position.z = 1
   prism.castShadow = true;
@@ -100,7 +98,7 @@ function prism(n, h) {
   });
 
   for (var i = 0; i < Math.PI; i += Math.PI / n) {
-    var a = i * 2;
+    const a = i * 2;
     var x = Math.cos(a) * 0.5;
     var y = Math.sin(a) * 0.5;
 
@@ -108,12 +106,16 @@ function prism(n, h) {
     pGeom.vertices.push(new THREE.Vector3(x, h, y));
   }
 
-  for (var i = 0; i < n; i++) {
+  for (var i = 0; i < n - 1; i++) {
     // Crea i lati
     j = i * 2
     pGeom.faces.push(new THREE.Face3(j, j + 1, j + 3))
     pGeom.faces.push(new THREE.Face3(j, j + 3, j + 2))
   }
+  // Crea l'ultimo lato
+  j = (n - 1) * 2
+  pGeom.faces.push(new THREE.Face3(j, j + 1, 1))
+  pGeom.faces.push(new THREE.Face3(j, 1, 0))
 
   for (var i = 0; i < n - 1; i++) {
     // Crea le basi
