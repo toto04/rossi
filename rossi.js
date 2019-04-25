@@ -28,16 +28,24 @@ window.addEventListener('load', () => {
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
-  prism = prism(6, 2)
-  var material = new THREE.MeshLambertMaterial({
-    color: 0xff0000
-  });
+  hex = prism({
+    faceNumber: 6,
+    height: 2,
+    pvDistance: 1,
+    plDistance: 1,
+    rotation: 0
+  })
+  scene.add(hex);
 
-  prism.position.x = -1
-  prism.position.z = 1
-  prism.castShadow = true;
-  prism.receiveShadow = true;
-  scene.add(prism);
+  tri = prism({
+    faceNumber: 3000,
+    height: 1,
+    pvDistance: 2,
+    plDistance: 2.2,
+    rotation: 0,
+    radius: 0.005
+  })
+  scene.add(tri)
 
   // ambientLight = new THREE.AmbientLight(0x777777);
   // scene.add(ambientLight);
@@ -53,14 +61,7 @@ window.addEventListener('load', () => {
   scene.add(dirLight)
 
   addPlanes();
-  dirLight.target = prism
-
-  // for (vertex of prism.geometry.vertices) {
-  //   if (!vertex) {
-  //     console.log("vaba");
-  //   }
-  // }
-
+  dirLight.target = hex
 
   animate();
 })
@@ -90,7 +91,14 @@ var animate = function() {
   renderer.render(scene, camera)
 };
 
-function prism(n, h) {
+function prism(settings) {
+  var n = settings.faceNumber
+  var d = 0
+  if (settings.poDistance) d = settings.poDistance
+  var h = settings.height + d
+  var r = 0.5
+  if (settings.radius) r = settings.radius
+
   var pGeom = new THREE.Geometry();
   pMat = new THREE.MeshToonMaterial({
     color: 0xffffff,
@@ -98,11 +106,11 @@ function prism(n, h) {
   });
 
   for (var i = 0; i < Math.PI; i += Math.PI / n) {
-    const a = i * 2;
-    var x = Math.cos(a) * 0.5;
-    var y = Math.sin(a) * 0.5;
+    const a = i * 2 + settings.rotation;
+    var x = Math.cos(a) * r;
+    var y = Math.sin(a) * r;
 
-    pGeom.vertices.push(new THREE.Vector3(x, 0, y));
+    pGeom.vertices.push(new THREE.Vector3(x, d, y));
     pGeom.vertices.push(new THREE.Vector3(x, h, y));
   }
 
@@ -140,10 +148,25 @@ function prism(n, h) {
     pGeom.faces[ind].color = c;
     pGeom.faces[ind + 1].color = c2
   }
-
   pGeom.computeFaceNormals();
   pGeom.computeVertexNormals();
-  return new THREE.Mesh(pGeom, pMat)
+
+  var max = 0, min = 0
+  for (var i = 0; i < pGeom.vertices.length; i++) {
+    if (pGeom.vertices[i].z < min) {
+      min = pGeom.vertices[i].z
+    }
+    if (pGeom.vertices[i].x > max) {
+      max = pGeom.vertices[i].x
+    }
+  }
+  console.log(min, max);
+  var pMesh = new THREE.Mesh(pGeom, pMat)
+  pMesh.position.x = -settings.plDistance - max
+  pMesh.position.z = +settings.pvDistance - min
+  pMesh.castShadow = true;
+  pMesh.receiveShadow = true;
+  return pMesh
 }
 
 function addPlanes() {
