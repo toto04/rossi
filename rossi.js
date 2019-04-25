@@ -1,6 +1,6 @@
 var scene, renderer
 var camera, xOrtho, yOrtho, zOrtho
-var light, dirLight
+var light, dirLight, controls
 
 window.addEventListener('load', () => {
   scene = new THREE.Scene();
@@ -11,7 +11,7 @@ window.addEventListener('load', () => {
   document.body.appendChild(renderer.domElement);
   renderer.autoClear = false;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFHardShadowMap;
+  renderer.shadowMap.type = THREE.BasicShadowMap;
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -24,6 +24,10 @@ window.addEventListener('load', () => {
   zOrtho = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
   zOrtho.rotation.x = -Math.PI / 2
   zOrtho.position.z = height / 2
+
+  camera = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
+  camera.position.z = 1
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
@@ -69,12 +73,13 @@ window.addEventListener('load', () => {
 var animate = function() {
   requestAnimationFrame(animate);
 
-  camera.lookAt(prism.position)
+  // camera.lookAt(new THREE.Vector3(0,0,0))
+  controls.update()
 
-  camera.position.x = Math.cos(Date.now() * 0.0005) * 15
-  camera.position.z = Math.sin(Date.now() * 0.0005) * 15
+  // camera.position.x = Math.cos(Date.now() * 0.0005) * 15
+  // camera.position.z = Math.sin(Date.now() * 0.0005) * 15
   // camera.position.x = -15
-  camera.position.y = 15
+  // camera.position.y = 15
   // xOrtho.position.x = Math.cos(Date.now() * 0.0005) * 5
 
   renderer.clear()
