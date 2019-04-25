@@ -13,27 +13,27 @@ window.addEventListener('load', () => {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
   var height = 5;
-  var width = height * window.innerWidth/window.innerHeight
+  var width = height * window.innerWidth / window.innerHeight
   xOrtho = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
   yOrtho = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
-  yOrtho.rotation.y = - Math.PI / 2
-  yOrtho.position.z = width/2
+  yOrtho.rotation.y = -Math.PI / 2
+  yOrtho.position.z = width / 2
   zOrtho = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
-  zOrtho.rotation.x = - Math.PI / 2
-  zOrtho.position.z = height/2
+  zOrtho.rotation.x = -Math.PI / 2
+  zOrtho.position.z = height / 2
 
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
   prism = prism(6, 2)
-  var material = new THREE.MeshLambertMaterial( {
+  var material = new THREE.MeshLambertMaterial({
     color: 0xff0000
-  } );
+  });
 
-  var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+  var geometry = new THREE.BoxGeometry(1, 1, 1);
   // prism = new THREE.Mesh( geometry, material );
   prism.position.x = -1
   prism.position.z = 1
@@ -44,7 +44,7 @@ window.addEventListener('load', () => {
   // ambientLight = new THREE.AmbientLight(0x777777);
   // scene.add(ambientLight);
 
-  dirLight = new THREE.DirectionalLight(0xffffff,1);
+  dirLight = new THREE.DirectionalLight(0xffffff, 1);
   dirLight.position.set(-100, 100, 100)
   dirLight.castShadow = true;
 
@@ -63,7 +63,7 @@ window.addEventListener('load', () => {
   animate();
 })
 
-var animate = function () {
+var animate = function() {
   requestAnimationFrame(animate);
 
   camera.lookAt(prism.position)
@@ -84,7 +84,7 @@ var animate = function () {
   renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, zOrtho);
 
-  renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window. innerHeight / 2)
+  renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, camera)
 };
 
@@ -94,12 +94,12 @@ function prism(n, h) {
     color: 0xffffff,
     vertexColors: THREE.FaceColors
   });
-  pMat = new THREE.MeshPhongMaterial( {
+  pMat = new THREE.MeshPhongMaterial({
     color: 0xffffff,
     vertexColors: THREE.FaceColors
-  } );
+  });
 
-  for (var i = 0; i < Math.PI; i+=Math.PI / n) {
+  for (var i = 0; i < Math.PI; i += Math.PI / n) {
     var a = i * 2;
     var x = Math.cos(a) * 0.5;
     var y = Math.sin(a) * 0.5;
@@ -111,8 +111,8 @@ function prism(n, h) {
   for (var i = 0; i < n; i++) {
     // Crea i lati
     j = i * 2
-    pGeom.faces.push(new THREE.Face3(j, j+1, j+3))
-    pGeom.faces.push(new THREE.Face3(j, j+3, j+2))
+    pGeom.faces.push(new THREE.Face3(j, j + 1, j + 3))
+    pGeom.faces.push(new THREE.Face3(j, j + 3, j + 2))
   }
 
   for (var i = 0; i < n - 1; i++) {
@@ -128,7 +128,7 @@ function prism(n, h) {
     ind = i * 2
     c = new THREE.Color(Math.random() * 0xffffff)
     pGeom.faces[ind].color = c;
-    pGeom.faces[ind+1].color = c;
+    pGeom.faces[ind + 1].color = c;
   }
   // Colora le basi
   c = new THREE.Color(Math.random() * 0xffffff)
@@ -202,7 +202,10 @@ function addPlanes() {
     new THREE.Vector3(-0, 0, 100)
   ]
 
-  axis = new THREE.Line(geom, new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1}))
+  axis = new THREE.Line(geom, new THREE.LineBasicMaterial({
+    color: 0x000000,
+    linewidth: 1
+  }))
 
   for (var i = 0; i < planes.length; i++) {
     planes[i].receiveShadows = true;
