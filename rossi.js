@@ -4,12 +4,14 @@ var light, dirLight
 
 window.addEventListener('load', () => {
   scene = new THREE.Scene();
+  scene.background = 0xffffff
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   renderer.autoClear = false;
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 
@@ -26,45 +28,30 @@ window.addEventListener('load', () => {
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
-  ambientLight = new THREE.AmbientLight(0x777777);
-  scene.add(ambientLight);
+  prism = prism(6, 2)
+  var material = new THREE.MeshLambertMaterial( {
+    color: 0xff0000
+  } );
+
+  var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+  // prism = new THREE.Mesh( geometry, material );
+  prism.position.x = -1
+  prism.position.z = 1
+  prism.castShadow = true;
+  prism.receiveShadow = true;
+  scene.add(prism);
+
+  // ambientLight = new THREE.AmbientLight(0x777777);
+  // scene.add(ambientLight);
 
   dirLight = new THREE.DirectionalLight(0xffffff,1);
   dirLight.position.set(-100, 100, 100)
   dirLight.castShadow = true;
 
-  dirLight.shadow.camera.near = 1;
-  dirLight.shadow.camera.far = 1000;
-  dirLight.shadow.camera.right = 15;
-  dirLight.shadow.camera.left = - 15;
-  dirLight.shadow.camera.top	= 15;
-  dirLight.shadow.camera.bottom = - 15;
-  dirLight.shadow.mapSize.width = 1024;
-  dirLight.shadow.mapSize.height = 1024;
-
   scene.add(dirLight)
-  scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
-
-
-  // dirLightShadowMapViewer = new THREE.ShadowMapViewer( dirLight );
-  // dirLightShadowMapViewer.position.x = 10;
-  // dirLightShadowMapViewer.position.y = 10;
-  // dirLightShadowMapViewer.size.width = 256;
-  // dirLightShadowMapViewer.size.height = 256;
-  // dirLightShadowMapViewer.update(); //Required when setting position or size directly
-
-
-  var lightHelper = new THREE.DirectionalLightHelper(dirLight);
-  scene.add(lightHelper)
 
   addPlanes();
-  prism = prism(3, 2)
-  prism.position.x = -1
-  prism.position.z = 1
-  prism.castShadow = true;
-  prism.receiveShadow = true;
-
-  // dirLight.target = prism
+  dirLight.target = prism
 
   // for (vertex of prism.geometry.vertices) {
   //   if (!vertex) {
@@ -72,7 +59,6 @@ window.addEventListener('load', () => {
   //   }
   // }
 
-  scene.add(prism);
 
   animate();
 })
@@ -82,10 +68,10 @@ var animate = function () {
 
   camera.lookAt(prism.position)
 
-  // camera.position.x = Math.cos(Date.now() * 0.0005) * 5
-  // camera.position.z = 15
+  camera.position.x = Math.cos(Date.now() * 0.0005) * 15
+  camera.position.z = Math.sin(Date.now() * 0.0005) * 15
   // camera.position.x = -15
-  // camera.position.y = 15
+  camera.position.y = 15
   // xOrtho.position.x = Math.cos(Date.now() * 0.0005) * 5
 
   renderer.clear()
@@ -99,7 +85,7 @@ var animate = function () {
   renderer.render(scene, zOrtho);
 
   renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window. innerHeight / 2)
-  renderer.render(scene, dirLight.shadow.camera)
+  renderer.render(scene, camera)
 };
 
 function prism(n, h) {
@@ -108,6 +94,10 @@ function prism(n, h) {
     color: 0xffffff,
     vertexColors: THREE.FaceColors
   });
+  pMat = new THREE.MeshPhongMaterial( {
+    color: 0xffffff,
+    vertexColors: THREE.FaceColors
+  } );
 
   for (var i = 0; i < Math.PI; i+=Math.PI / n) {
     var a = i * 2;
@@ -149,14 +139,17 @@ function prism(n, h) {
     pGeom.faces[ind + 1].color = c2
   }
 
-  // pGeom.computeFaceNormals();
-  // pGeom.computeVertexNormals();
+  pGeom.computeFaceNormals();
+  pGeom.computeVertexNormals();
   return new THREE.Mesh(pGeom, pMat)
 }
 
 function addPlanes() {
-  mat = new THREE.MeshStandardMaterial({
-    color: 0xffffff
+  mat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    shininess: 150,
+    specular: 0x222222,
+    side: THREE.DoubleSide
   })
 
   planes = []
@@ -169,6 +162,8 @@ function addPlanes() {
 
   geom.faces.push(new THREE.Face3(0, 2, 1))
   geom.faces.push(new THREE.Face3(0, 2, 3))
+  geom.computeFaceNormals();
+  geom.computeVertexNormals();
 
   planes.push(new THREE.Mesh(geom, mat))
 
@@ -180,6 +175,8 @@ function addPlanes() {
 
   geom.faces.push(new THREE.Face3(0, 1, 2))
   geom.faces.push(new THREE.Face3(0, 2, 3))
+  geom.computeFaceNormals();
+  geom.computeVertexNormals();
 
   planes.push(new THREE.Mesh(geom, mat))
 
@@ -191,6 +188,8 @@ function addPlanes() {
 
   geom.faces.push(new THREE.Face3(0, 1, 2))
   geom.faces.push(new THREE.Face3(0, 3, 2))
+  geom.computeFaceNormals();
+  geom.computeVertexNormals();
 
   planes.push(new THREE.Mesh(geom, mat))
 
