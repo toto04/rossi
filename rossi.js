@@ -25,6 +25,7 @@ window.addEventListener('load', () => {
   zOrtho.rotation.x = -Math.PI / 2
   zOrtho.position.z = height / 2
 
+  // TODO: http://jsfiddle.net/420erjgf/
   camera = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
   camera.position.z = 1
   controls = new THREE.OrbitControls(camera, renderer.domElement);
