@@ -25,7 +25,6 @@ window.addEventListener('load', () => {
   zOrtho.rotation.x = -Math.PI / 2
   zOrtho.position.z = height / 2
 
-  // TODO: http://jsfiddle.net/420erjgf/
   camera = new THREE.OrthographicCamera(width / -2, 0, height / 2, 0, -10, 10000);
   camera.position.z = 1
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -33,7 +32,7 @@ window.addEventListener('load', () => {
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
-  hex = prism({
+  hex = new Prism({
     faceNumber: 6,
     height: 2,
     pvDistance: 1,
@@ -42,7 +41,7 @@ window.addEventListener('load', () => {
   })
   scene.add(hex);
 
-  tri = prism({
+  tri = new Prism({
     faceNumber: 3000,
     height: 1,
     pvDistance: 2,
@@ -93,91 +92,147 @@ var animate = function() {
   renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, zOrtho);
 
+  hex.axon()
   renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, camera)
+  hex.removeAxon()
 };
 
-function prism(settings) {
-  var n = settings.faceNumber
-  var d = 0
-  if (settings.poDistance) d = settings.poDistance
-  var h = settings.height + d
-  var r = 0.5
-  if (settings.radius) r = settings.radius
+class Prism extends THREE.Mesh {
+  constructor(settings) {
+    var n = settings.faceNumber
+    var d = 0
+    if (settings.poDistance) d = settings.poDistance
+    var h = settings.height + d
+    var r = 0.5
+    if (settings.radius) r = settings.radius
 
-  var pGeom = new THREE.Geometry();
-  pMat = new THREE.MeshToonMaterial({
-    color: 0xffffff,
-    vertexColors: THREE.FaceColors
-  });
+    var pGeom = new THREE.Geometry();
+    var pMat = new THREE.MeshToonMaterial({
+      color: 0xffffff,
+      vertexColors: THREE.FaceColors
+    });
 
-  for (var i = 0; i < Math.PI; i += Math.PI / n) {
-    const a = i * 2 + settings.rotation;
-    var x = Math.cos(a) * r;
-    var y = Math.sin(a) * r;
+    for (var i = 0; i < Math.PI; i += Math.PI / n) {
+      const a = i * 2 + settings.rotation;
+      var x = Math.cos(a) * r;
+      var y = Math.sin(a) * r;
 
-    pGeom.vertices.push(new THREE.Vector3(x, d, y));
-    pGeom.vertices.push(new THREE.Vector3(x, h, y));
-  }
-
-  for (var i = 0; i < n - 1; i++) {
-    // Crea i lati
-    j = i * 2
-    pGeom.faces.push(new THREE.Face3(j, j + 1, j + 3))
-    pGeom.faces.push(new THREE.Face3(j, j + 3, j + 2))
-  }
-  // Crea l'ultimo lato
-  j = (n - 1) * 2
-  pGeom.faces.push(new THREE.Face3(j, j + 1, 1))
-  pGeom.faces.push(new THREE.Face3(j, 1, 0))
-
-  for (var i = 0; i < n - 1; i++) {
-    // Crea le basi
-    d = i * 2;
-    u = d + 1
-    pGeom.faces.push(new THREE.Face3(0, d, d + 2));
-    pGeom.faces.push(new THREE.Face3(1, u + 2, u));
-  }
-
-  // Colora i lati
-  for (var i = 0; i < n; i++) {
-    ind = i * 2
-    c = new THREE.Color(Math.random() * 0xffffff)
-    pGeom.faces[ind].color = c;
-    pGeom.faces[ind + 1].color = c;
-  }
-  // Colora le basi
-  c = new THREE.Color(Math.random() * 0xffffff)
-  c2 = new THREE.Color(Math.random() * 0xffffff)
-  for (var i = 0; i < n - 1; i++) {
-    ind = (i + n) * 2;
-    pGeom.faces[ind].color = c;
-    pGeom.faces[ind + 1].color = c2
-  }
-  pGeom.computeFaceNormals();
-  pGeom.computeVertexNormals();
-
-  var max = 0, min = 0
-  for (var i = 0; i < pGeom.vertices.length; i++) {
-    if (pGeom.vertices[i].z < min) {
-      min = pGeom.vertices[i].z
+      pGeom.vertices.push(new THREE.Vector3(x, d, y));
+      pGeom.vertices.push(new THREE.Vector3(x, h, y));
     }
-    if (pGeom.vertices[i].x > max) {
-      max = pGeom.vertices[i].x
+
+    for (var i = 0; i < n - 1; i++) {
+      // Crea i lati
+      var j = i * 2
+      pGeom.faces.push(new THREE.Face3(j, j + 1, j + 3))
+      pGeom.faces.push(new THREE.Face3(j, j + 3, j + 2))
+    }
+    // Crea l'ultimo lato
+    j = (n - 1) * 2
+    pGeom.faces.push(new THREE.Face3(j, j + 1, 1))
+    pGeom.faces.push(new THREE.Face3(j, 1, 0))
+
+    for (var i = 0; i < n - 1; i++) {
+      // Crea le basi
+      var d = i * 2;
+      var u = d + 1
+      pGeom.faces.push(new THREE.Face3(0, d, d + 2));
+      pGeom.faces.push(new THREE.Face3(1, u + 2, u));
+    }
+
+    // Colora i lati
+    for (var i = 0; i < n; i++) {
+      var ind = i * 2
+      var c = new THREE.Color(Math.random() * 0xffffff)
+      pGeom.faces[ind].color = c;
+      pGeom.faces[ind + 1].color = c;
+    }
+    // Colora le basi
+    var c = new THREE.Color(Math.random() * 0xffffff)
+    var c2 = new THREE.Color(Math.random() * 0xffffff)
+    for (var i = 0; i < n - 1; i++) {
+      ind = (i + n) * 2;
+      pGeom.faces[ind].color = c;
+      pGeom.faces[ind + 1].color = c2
+    }
+    pGeom.computeFaceNormals();
+    pGeom.computeVertexNormals();
+
+    var max = 0,
+      min = 0
+    for (var i = 0; i < pGeom.vertices.length; i++) {
+      if (pGeom.vertices[i].z < min) {
+        min = pGeom.vertices[i].z
+      }
+      if (pGeom.vertices[i].x > max) {
+        max = pGeom.vertices[i].x
+      }
+    }
+
+    // Ora che tutto lo schifo è stato preparato viene chiamato il super
+    super(pGeom, pMat)
+    this.position.x = -settings.plDistance - max
+    this.position.z = +settings.pvDistance - min
+    this.castShadow = true;
+    this.receiveShadow = true;
+    this._axonometricMode = false;
+  }
+
+  axon() {
+    // http://jsfiddle.net/420erjgf/
+    if (!this._axonometricMode) {
+      var alpha = Math.PI / 4;
+      var syx = 0,
+        szx = 0.5 * Math.cos(alpha),
+        sxy = 0,
+        szy = -0.5 * Math.sin(alpha),
+        sxz = 0,
+        syz = 0;
+
+      var matrix = new THREE.Matrix4();
+      matrix.set(
+        1, syx, szx, 0,
+        sxy, 1, szy, 0,
+        sxz, syz, 1, 0,
+        0, 0, 0, 1);
+
+      this.geometry.applyMatrix(matrix);
+      this._axonometricMode = true;
+    } else {
+      console.warn("Already in axonometric mode! Call removeAxon() method first")
     }
   }
-  console.log(min, max);
-  var pMesh = new THREE.Mesh(pGeom, pMat)
-  pMesh.position.x = -settings.plDistance - max
-  pMesh.position.z = +settings.pvDistance - min
-  pMesh.castShadow = true;
-  pMesh.receiveShadow = true;
-  return pMesh
+
+  removeAxon() {
+    if (this._axonometricMode) {
+      var alpha = Math.PI / 4;
+      var syx = 0,
+        szx = 0.5 * Math.cos(alpha),
+        sxy = 0,
+        szy = -0.5 * Math.sin(alpha),
+        sxz = 0,
+        syz = 0;
+      5
+
+      var matrix = new THREE.Matrix4();
+      matrix.set(
+        1, -syx, -szx, 0,
+        -sxy, 1, -szy, 0,
+        -sxz, -syz, 1, 0,
+        0, 0, 0, 1);
+
+      this.geometry.applyMatrix(matrix);
+      this._axonometricMode = false;
+    } else {
+      console.warn("Not in axonometric mode! Call axon() method first")
+    }
+  }
 }
 
 function addPlanes() {
   planes = []
-  geom = new THREE.PlaneBufferGeometry(100, 100);
+  geom = new THREE.PlaneGeometry(100, 100);
 
   mat = new THREE.MeshToonMaterial({
     color: 0xf070a2,
