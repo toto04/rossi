@@ -1,4 +1,4 @@
-var scene, renderer
+var scene, renderer, scene2
 var camera, xOrtho, yOrtho, zOrtho
 var light, dirLight, controls
 
@@ -32,19 +32,19 @@ window.addEventListener('load', () => {
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
-  hex = new Prism({
+  hex = new Piramid({
     faceNumber: 6,
-    height: 2,
-    pvDistance: 1,
+    height: 1,
+    pvDistance: 0.7,
     plDistance: 1,
-    rotation: 0
+    rotation: Math.PI / 1
   })
   scene.add(hex);
 
   tri = new Prism({
     faceNumber: 3000,
-    height: 1,
-    pvDistance: 2,
+    height: 1.6,
+    pvDistance: 1.8,
     plDistance: 2.2,
     rotation: 0,
     radius: 0.005
@@ -62,8 +62,27 @@ window.addEventListener('load', () => {
   dirLight.shadow.mapSize.height = Math.pow(2, 11)
   dirLight.shadow.bias = 0.000001
 
+  var alpha = Math.PI / 4;
+  var syx = 0,
+    szx = 0.5 * Math.cos(alpha),
+    sxy = 0,
+    szy = -0.5 * Math.sin(alpha),
+    sxz = 0,
+    syz = 0;
+
+  var matrix = new THREE.Matrix4();
+  // matrix.set(
+  //   1, syx, szx, 0,
+  //   sxy, 1, szy, 0,
+  //   sxz, syz, 1, 0,
+  //   0, 0, 0, 1);
+
+  scene.applyMatrix(matrix);
+
   scene.add(dirLight)
 
+  addLines(hex)
+  addLines(tri)
   addPlanes();
   dirLight.target = hex
 
@@ -92,11 +111,127 @@ var animate = function() {
   renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, zOrtho);
 
-  hex.axon()
+  // hex.axon()
   renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight / 2)
   renderer.render(scene, camera)
-  hex.removeAxon()
+  // hex.removeAxon()
 };
+
+class Piramid extends THREE.Mesh {
+  constructor(settings) {
+    var n = settings.faceNumber
+    var d = 0
+    if (settings.poDistance) d = settings.poDistance
+    var h = settings.height + d
+    var r = 0.5
+    if (settings.radius) r = settings.radius
+
+    var pGeom = new THREE.Geometry();
+    var pMat = new THREE.MeshToonMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+      vertexColors: THREE.FaceColors
+    });
+
+    pGeom.vertices.push(new THREE.Vector3(0, h, 0));
+    for (var i = 0; i < Math.PI; i += Math.PI / n) {
+      const a = i * 2 + settings.rotation;
+      var x = Math.cos(a) * r;
+      var y = Math.sin(a) * r;
+
+      pGeom.vertices.push(new THREE.Vector3(x, d, y));
+    }
+
+    for (var i = 1; i < n; i++) {
+      // Crea i lati
+      pGeom.faces.push(new THREE.Face3(0, i + 1, i))
+    }
+    pGeom.faces.push(new THREE.Face3(0, 1, n))
+
+    for (var i = 2; i < n; i++) {
+      // Crea la base
+      var d = i;
+      pGeom.faces.push(new THREE.Face3(1, d + 2, d));
+    }
+
+    // Colora i lati
+    for (var face of pGeom.faces) {
+      face.color = new THREE.Color(Math.random() * 0xffffff)
+    }
+
+    pGeom.computeFaceNormals();
+    pGeom.computeVertexNormals();
+
+    var max = 0,
+      min = 0
+    for (var i = 0; i < pGeom.vertices.length; i++) {
+      if (pGeom.vertices[i].z < min) {
+        min = pGeom.vertices[i].z
+      }
+      if (pGeom.vertices[i].x > max) {
+        max = pGeom.vertices[i].x
+      }
+    }
+
+    // Ora che tutto lo schifo è stato preparato viene chiamato il super
+    super(pGeom, pMat)
+    this.position.x = -settings.plDistance - max
+    this.position.z = +settings.pvDistance - min
+    this.castShadow = true;
+    this.receiveShadow = true;
+    this._axonometricMode = false;
+  }
+
+  axon() {
+    // http://jsfiddle.net/420erjgf/
+    if (!this._axonometricMode) {
+      var alpha = Math.PI / 4;
+      var syx = 0,
+        szx = 0.5 * Math.cos(alpha),
+        sxy = 0,
+        szy = -0.5 * Math.sin(alpha),
+        sxz = 0,
+        syz = 0;
+
+      var matrix = new THREE.Matrix4();
+      matrix.set(
+        1, syx, szx, 0,
+        sxy, 1, szy, 0,
+        sxz, syz, 1, 0,
+        0, 0, 0, 1);
+
+      this.geometry.applyMatrix(matrix);
+      this._axonometricMode = true;
+    } else {
+      console.warn("Already in axonometric mode! Call removeAxon() method first")
+    }
+  }
+
+  removeAxon() {
+    if (this._axonometricMode) {
+      var alpha = Math.PI / 4;
+      var syx = 0,
+        szx = 0.5 * Math.cos(alpha),
+        sxy = 0,
+        szy = -0.5 * Math.sin(alpha),
+        sxz = 0,
+        syz = 0;
+      5
+
+      var matrix = new THREE.Matrix4();
+      matrix.set(
+        1, -syx, -szx, 0,
+        -sxy, 1, -szy, 0,
+        -sxz, -syz, 1, 0,
+        0, 0, 0, 1);
+
+      this.geometry.applyMatrix(matrix);
+      this._axonometricMode = false;
+    } else {
+      console.warn("Not in axonometric mode! Call axon() method first")
+    }
+  }
+}
 
 class Prism extends THREE.Mesh {
   constructor(settings) {
@@ -228,6 +363,29 @@ class Prism extends THREE.Mesh {
       console.warn("Not in axonometric mode! Call axon() method first")
     }
   }
+}
+
+function addLines(poligon) {
+  poligon.geometry.vertices.forEach(vec => {
+    v = vec.clone()
+    v.add(poligon.position)
+    var m = new THREE.LineBasicMaterial({
+      color: 0x000000,
+      linewidth: 2
+    })
+    var lineGeom = new THREE.Geometry();
+    lineGeom.vertices.push(v)
+    lineGeom.vertices.push(new THREE.Vector3(0, v.y, v.z))
+    scene.add(new THREE.Line(lineGeom, m))
+    lineGeom = new THREE.Geometry();
+    lineGeom.vertices.push(v)
+    lineGeom.vertices.push(new THREE.Vector3(v.x, 0, v.z))
+    scene.add(new THREE.Line(lineGeom, m))
+    lineGeom = new THREE.Geometry();
+    lineGeom.vertices.push(v)
+    lineGeom.vertices.push(new THREE.Vector3(v.x, v.y, 0))
+    scene.add(new THREE.Line(lineGeom, m))
+  })
 }
 
 function addPlanes() {
