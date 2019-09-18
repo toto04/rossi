@@ -9,6 +9,8 @@ window.addEventListener('load', () => {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
+  document.querySelector('canvas').width = window.innerWidth * window.devicePixelRatio
+  document.querySelector('canvas').height = window.innerHeight * window.devicePixelRatio
   renderer.autoClear = false;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.BasicShadowMap;
@@ -58,26 +60,29 @@ window.addEventListener('load', () => {
   dirLight.position.set(-100, 100, 100)
   dirLight.castShadow = true;
 
-  dirLight.shadow.mapSize.width = Math.pow(2, 11)
-  dirLight.shadow.mapSize.height = Math.pow(2, 11)
-  dirLight.shadow.bias = 0.000001
+  dirLight.shadow.mapSize.width = Math.pow(2, 12)
+  dirLight.shadow.mapSize.height = Math.pow(2, 12)
+  dirLight.shadow.bias = -0.0002
 
-  var alpha = Math.PI / 4;
-  var syx = 0,
-    szx = 0.5 * Math.cos(alpha),
-    sxy = 0,
-    szy = -0.5 * Math.sin(alpha),
-    sxz = 0,
-    syz = 0;
+  dirLight.shadow.camera.near = 0
+  dirLight.shadow.camera.far = 200
 
-  var matrix = new THREE.Matrix4();
+  // var alpha = Math.PI / 4;
+  // var syx = 0,
+  //   szx = 0.5 * Math.cos(alpha),
+  //   sxy = 0,
+  //   szy = -0.5 * Math.sin(alpha),
+  //   sxz = 0,
+  //   syz = 0;
+
+  // var matrix = new THREE.Matrix4();
   // matrix.set(
   //   1, syx, szx, 0,
   //   sxy, 1, szy, 0,
   //   sxz, syz, 1, 0,
   //   0, 0, 0, 1);
 
-  scene.applyMatrix(matrix);
+  // scene.applyMatrix(matrix);
 
   scene.add(dirLight)
 
@@ -101,18 +106,23 @@ var animate = function() {
   // camera.position.y = 15
   // xOrtho.position.x = Math.cos(Date.now() * 0.0005) * 5
 
+  let v = new THREE.Vector2()
+  renderer.getSize(v)
+  let w = v.x / 2 * window.devicePixelRatio
+  let h = v.y / 2 * window.devicePixelRatio
+
   renderer.clear()
-  renderer.setViewport(0, window.innerHeight / 2, window.innerWidth / 2, window.innerHeight / 2)
+  renderer.setViewport(0, h, w, h)
   renderer.render(scene, xOrtho);
 
-  renderer.setViewport(window.innerWidth / 2, window.innerHeight / 2, window.innerWidth / 2, window.innerHeight / 2)
+  renderer.setViewport(w, h, w, h)
   renderer.render(scene, yOrtho);
 
-  renderer.setViewport(0, 0, window.innerWidth / 2, window.innerHeight / 2)
+  renderer.setViewport(0, 0, w, h)
   renderer.render(scene, zOrtho);
 
   // hex.axon()
-  renderer.setViewport(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight / 2)
+  renderer.setViewport(w, 0, w, h)
   renderer.render(scene, camera)
   // hex.removeAxon()
 };
