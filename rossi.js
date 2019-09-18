@@ -34,20 +34,21 @@ window.addEventListener('load', () => {
   // var helper = new THREE.CameraHelper(zOrtho)
   // scene.add(helper)
 
-  hex = new Piramid({
-    faceNumber: 6,
-    height: 1,
-    pvDistance: 0.7,
-    plDistance: 1,
-    rotation: Math.PI / 1
+  hex = new Prism({
+    faceNumber: 4,
+    height: 0.6,
+    pvDistance: 0.4,
+    plDistance: 2,
+    rotation: Math.PI * 1.5 / 2,
+    radius: 0.8
   })
   scene.add(hex);
 
   tri = new Prism({
-    faceNumber: 3000,
-    height: 1.6,
+    faceNumber: 3,
+    height: 1.7,
     pvDistance: 1.8,
-    plDistance: 2.2,
+    plDistance: 3.5,
     rotation: 0,
     radius: 0.005
   })
@@ -60,9 +61,9 @@ window.addEventListener('load', () => {
   dirLight.position.set(-100, 100, 100)
   dirLight.castShadow = true;
 
-  dirLight.shadow.mapSize.width = Math.pow(2, 12)
-  dirLight.shadow.mapSize.height = Math.pow(2, 12)
-  dirLight.shadow.bias = -0.0002
+  dirLight.shadow.mapSize.width = Math.pow(2, 13)
+  dirLight.shadow.mapSize.height = Math.pow(2, 13)
+  dirLight.shadow.bias = -0.000016
 
   dirLight.shadow.camera.near = 0
   dirLight.shadow.camera.far = 200
@@ -86,10 +87,13 @@ window.addEventListener('load', () => {
 
   scene.add(dirLight)
 
+  let amb = new THREE.AmbientLight(0x505050)
+  scene.add(amb)
+
   addLines(hex)
   addLines(tri)
   addPlanes();
-  dirLight.target = hex
+  // dirLight.target = hex
 
   animate();
 })
@@ -160,8 +164,7 @@ class Piramid extends THREE.Mesh {
 
     for (var i = 2; i < n; i++) {
       // Crea la base
-      var d = i;
-      pGeom.faces.push(new THREE.Face3(1, d + 2, d));
+      pGeom.faces.push(new THREE.Face3(1, i + 1, i));
     }
 
     // Colora i lati
